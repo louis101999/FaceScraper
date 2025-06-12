@@ -12,6 +12,7 @@ face-scraper "Celebrity Name" --output ./data
 Currently images are sourced from:
 
 - [Fandom](https://www.fandom.com/) wikis via the hidden Lightbox endpoint
-- [Pinterest](https://www.pinterest.com/) via the [`pinscrape`](https://pypi.org/project/pinscrape/) library
+- [Pinterest](https://www.pinterest.com/) using the `pinscrape` library's
+  ``scraper.scrape`` helper
 
 Additional sources can be added by creating new search functions and registering them in ``face_scraper.search.SOURCES``.

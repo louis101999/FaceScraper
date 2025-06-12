@@ -12,7 +12,9 @@ import re
 from typing import Callable, Iterable, List
 
 import requests
-from pinscrape import Pinterest
+from pinscrape import scraper
+import tempfile
+import shutil
 
 
 _STRIP_REVISION_RE = re.compile(r"/revision.*$")
@@ -58,13 +60,16 @@ def fetch_fandom_image_urls(name: str) -> List[str]:
 
 
 def fetch_pinterest_image_urls(keyword: str, limit: int = 50) -> List[str]:
-    """Return image URLs from Pinterest using ``pinscrape``."""
+    """Return image URLs from Pinterest using ``pinscrape`` via ``scraper.scrape``."""
 
-    p = Pinterest()
+    tmpdir = tempfile.mkdtemp()
     try:
-        return p.search(keyword, limit)
+        details = scraper.scrape(keyword, tmpdir, {}, 10, limit)
+        return details.get("urls_list", [])
     except Exception:
         return []
+    finally:
+        shutil.rmtree(tmpdir, ignore_errors=True)
 
 
 SOURCES: List[SearchFunc] = [fetch_fandom_image_urls, fetch_pinterest_image_urls]
