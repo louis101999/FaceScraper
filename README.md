@@ -1,6 +1,6 @@
 # Face Scraper
 
-A tool to fetch celebrity images from multiple sources, filter them for quality, extract faces, and keep only those matching the target person.
+A tool to fetch celebrity images from Fandom wikis, filter them for quality, extract faces, and keep only those matching the target person.
 
 ## Usage
 

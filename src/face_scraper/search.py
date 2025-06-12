@@ -1,78 +1,54 @@
-"""Image search utilities."""
+"""Image search utilities for Fandom."""
 
 from __future__ import annotations
 
-import requests
+import json
+import re
 from typing import List
 
-from duckduckgo_search import DDGImages
+import requests
 
 
-API_ENDPOINT = "https://en.wikipedia.org/w/api.php"
+_STRIP_REVISION_RE = re.compile(r"/revision.*$")
 
 
-def fetch_wikipedia_image_urls(person: str) -> List[str]:
-    """Fetch image URLs from a Wikipedia page.
+def fetch_fandom_image_urls(name: str) -> List[str]:
+    """Return image URLs from ``<name>.fandom.com`` using the Lightbox endpoint.
 
-    Parameters
-    ----------
-    person:
-        Name of the public figure to search for.
-
-    Returns
-    -------
-    List[str]
-        List of image URLs associated with the page.
+    This function performs a simple slug transformation on ``name`` to guess the
+    Fandom subdomain. It then iterates over Lightbox batches until no more
+    images are returned.
     """
-    params = {
-        "action": "query",
-        "format": "json",
-        "prop": "images",
-        "titles": person,
-    }
-    resp = requests.get(API_ENDPOINT, params=params, timeout=10)
-    resp.raise_for_status()
-    data = resp.json()
-    pages = data.get("query", {}).get("pages", {})
-    image_titles = []
-    for page in pages.values():
-        images = page.get("images", [])
-        for img in images:
-            title = img.get("title")
-            if title:
-                image_titles.append(title)
 
-    image_urls: List[str] = []
-    for title in image_titles:
-        file_params = {
-            "action": "query",
-            "format": "json",
-            "titles": title,
-            "prop": "imageinfo",
-            "iiprop": "url",
-        }
-        file_resp = requests.get(API_ENDPOINT, params=file_params, timeout=10)
-        file_resp.raise_for_status()
-        file_data = file_resp.json()
-        file_pages = file_data.get("query", {}).get("pages", {})
-        for fp in file_pages.values():
-            imageinfo = fp.get("imageinfo", [])
-            if imageinfo:
-                url = imageinfo[0].get("url")
-                if url:
-                    image_urls.append(url)
-    return image_urls
+    sub = re.sub(r"[^a-z0-9]", "", name.lower())
+    base = f"https://{sub}.fandom.com"
+    images: List[str] = []
+    batch = 0
+    headers = {"User-Agent": "Mozilla/5.0"}
+
+    while True:
+        url = (
+            f"{base}/wikia.php?controller=Lightbox&method=getFilteredThumbImages"
+            f"&batchNum={batch}&count=10000&format=json&inclusive=true"
+        )
+        resp = requests.get(url, headers=headers, timeout=15)
+        if resp.status_code != 200:
+            break
+        data = resp.json()
+        batch_items = []
+        for item in data.get("items", []):
+            raw = item.get("url") or item.get("thumbUrl")
+            if raw:
+                full = _STRIP_REVISION_RE.sub("", raw)
+                batch_items.append(full)
+        if not batch_items:
+            break
+        images.extend(batch_items)
+        batch += 1
+    return images
 
 
-def fetch_duckduckgo_image_urls(query: str, max_results: int = 20) -> List[str]:
-    """Fetch image URLs via DuckDuckGo."""
-    ddg = DDGImages()
-    results = ddg.images(query, max_results=max_results)
-    return [r["image"] for r in results if r.get("image")]
+def fetch_image_urls(name: str) -> List[str]:
+    """Fetch image URLs for ``name`` using Fandom only."""
 
-
-def fetch_image_urls(person: str, max_results: int = 20) -> List[str]:
-    """Aggregate image URLs from multiple sources."""
-    urls = fetch_wikipedia_image_urls(person)
-    urls.extend(fetch_duckduckgo_image_urls(person, max_results=max_results))
-    return urls
+    return fetch_fandom_image_urls(name)
