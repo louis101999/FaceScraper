@@ -1,4 +1,4 @@
-"""Image search utilities for Fandom."""
+"""Image search utilities for Fandom and Pinterest."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ import re
 from typing import List
 
 import requests
+from pinscrape import Pinterest
 
 
 _STRIP_REVISION_RE = re.compile(r"/revision.*$")
@@ -48,7 +49,19 @@ def fetch_fandom_image_urls(name: str) -> List[str]:
     return images
 
 
-def fetch_image_urls(name: str) -> List[str]:
-    """Fetch image URLs for ``name`` using Fandom only."""
+def fetch_pinterest_image_urls(keyword: str, limit: int = 50) -> List[str]:
+    """Return image URLs from Pinterest search."""
 
-    return fetch_fandom_image_urls(name)
+    p = Pinterest()
+    try:
+        return p.search(keyword, limit)
+    except Exception:
+        return []
+
+
+def fetch_image_urls(name: str) -> List[str]:
+    """Fetch image URLs for ``name`` from multiple sources."""
+
+    fandom = fetch_fandom_image_urls(name)
+    pinterest = fetch_pinterest_image_urls(name)
+    return list(dict.fromkeys(fandom + pinterest))
