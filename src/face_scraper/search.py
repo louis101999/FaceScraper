@@ -23,7 +23,7 @@ _STRIP_REVISION_RE = re.compile(r"/revision.*$")
 SearchFunc = Callable[[str, int], List[str]]
 
 
-def fetch_fandom_image_urls(name: str) -> List[str]:
+def fetch_fandom_image_urls(name: str, limit: int = 50) -> List[str]:
     """Return image URLs from ``<name>.fandom.com`` using the Lightbox endpoint.
 
     This function performs a simple slug transformation on ``name`` to guess the
@@ -55,8 +55,10 @@ def fetch_fandom_image_urls(name: str) -> List[str]:
         if not batch_items:
             break
         images.extend(batch_items)
+        if len(images) >= limit:
+            return images[:limit]
         batch += 1
-    return images
+    return images[:limit]
 
 
 def fetch_pinterest_image_urls(keyword: str, limit: int = 50) -> List[str]:
