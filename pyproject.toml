@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "face-scraper"
+version = "0.1.0"
+description = "AI-Powered Celebrity Image Scraper and Quality Assessment Tool"
+authors = [{name="OpenAI"}]
+requires-python = ">=3.10"
+dependencies = [
+    "aiohttp",
+    "requests",
+    "pillow",
+    "numpy==1.26.4",
+    "opencv-contrib-python",
+    "duckduckgo-search",
+]
+
+[project.scripts]
+face-scraper = "face_scraper.main:main"
