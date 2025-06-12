@@ -1,6 +1,6 @@
 # Face Scraper
 
-A tool to fetch celebrity images from Fandom wikis, filter them for quality, extract faces, and keep only those matching the target person.
+A tool to fetch celebrity images from multiple sources, filter them for quality, extract faces, and keep only those matching the target person.
 
 ## Usage
 
@@ -9,4 +9,9 @@ pip install -e .
 face-scraper "Celebrity Name" --output ./data
 ```
 
-Images are sourced from [Fandom](https://www.fandom.com/) wikis using the hidden Lightbox endpoint.
+Currently images are sourced from:
+
+- [Fandom](https://www.fandom.com/) wikis via the hidden Lightbox endpoint
+- [Pinterest](https://www.pinterest.com/) via the [`pinscrape`](https://pypi.org/project/pinscrape/) library
+
+Additional sources can be added by creating new search functions and registering them in ``face_scraper.search.SOURCES``.
